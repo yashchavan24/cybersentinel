@@ -11,7 +11,28 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(helmet());
-app.use(cors({ origin: (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',') }));
+
+// Smart CORS: allow localhost + any Vercel/Netlify/Render/ngrok/Cloudflare URL
+const extraOrigins = (process.env.CORS_ORIGIN || '').split(',').filter(Boolean);
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || extraOrigins.includes(origin)) return cb(null, true);
+    const allowed = [
+      /^https?:\/\/localhost(:\d+)?$/,
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+      /\.vercel\.app$/,
+      /\.vercel\.dev$/,
+      /\.netlify\.app$/,
+      /\.ngrok-free\.app$/,
+      /\.ngrok\.io$/,
+      /\.trycloudflare\.com$/,
+      /\.onrender\.com$/
+    ];
+    if (allowed.some(re => re.test(origin))) return cb(null, true);
+    return cb(null, false);
+  }
+}));
+
 app.use(express.json({ limit: '1mb' }));
 app.use('/api', rateLimit({ windowMs: 15 * 60e3, limit: 500, standardHeaders: true, legacyHeaders: false, message: { error: 'Rate limit exceeded' } }));
 
