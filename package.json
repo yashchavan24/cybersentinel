@@ -1,0 +1,11 @@
+{
+  "name": "cybersentinel",
+  "private": true,
+  "scripts": {
+    "install-all": "npm i --prefix backend && npm i --prefix frontend",
+    "dev": "concurrently -n API,WEB -c cyan,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
